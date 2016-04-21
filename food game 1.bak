@@ -1,0 +1,723 @@
+Rem Project: food game 1
+Rem Created: 02/01/04 17:28:31
+
+Rem ***** Main Source File *****
+sync on
+sync rate 30
+hide mouse
+autocam off
+set text font "comic sans ms"
+set text size 24
+
+dim hiscore$(10)
+data "JON","JON","JON","JON","JON","JON","JON","JON","JON","JON"
+for i=0 to 9
+read hiscore$(i)
+next i
+
+dim hiscores(10)
+for i=0 to 9
+hiscores(i)=(i+1)*1000
+next i
+
+if file exist("hiscore.dat")=1
+open to read 1,"hiscore.dat"
+for i=0 to 9
+read string 1,hiscore$(i)
+next i
+for i=0 to 9
+read word 1,hiscores(i)
+next i
+close file 1
+endif
+
+`dim hiscorens(30,2)
+`dim hiscoren$(30)
+`1800x120
+`for i=0 to 14
+`hiscorens(i,0)=(0-900)+(120*i)+60
+`hiscorens(i+14,0)=(0-900)+(120*i)+60
+`hiscorens(i,1)=(0-600)+30
+`hiscorens(i+14,1)=(0-600)-30
+`next i
+`data "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","","","",""
+`for i=0 to 29
+`read hiscoren$(i)
+`next i
+
+dim hiscoreappear#(10)
+
+load image "black.bmp",1000
+sprite 1,0,0,1000
+scale sprite 1,64000
+set sprite alpha 1,0
+
+make object plain 101,4000,4000
+xrotate object 101,90
+fix object pivot 101
+
+load image "ground.bmp",101
+texture object 101,101
+set object light 101,0
+
+load object "antsmash.3ds",102
+position object 102,10000,0,700
+scale object 102,2000,2000,2000
+load image "blue.bmp",102
+texture object 102,102
+fade object 102,200
+
+make object plain 103,500,500
+xrotate object 103,270
+set object light 103,0
+set object transparency 103,1
+load image "startsplat.bmp",103
+texture object 103,103
+position object 103,10000-500,3,0
+
+make object plain 104,500,500
+xrotate object 104,270
+set object light 104,0
+set object transparency 104,1
+load image "exitsplat.bmp",104
+texture object 104,104
+position object 104,10000-500,3,-600
+
+make object plain 105,1800,240
+xrotate object 105,270
+set object light 105,0
+set object transparency 105,1
+load image "hiscorename.bmp",105
+texture object 105,105
+position object 105,20000,3,-600
+
+load object "hammer.3ds",1
+scale object 1,400,400,400
+`set object light 1,0
+`color object 1,rgb(172,108,44)
+`color object 1,rgb(225,153,57)
+load image "hammer.bmp",1
+texture object 1,1
+`make object plain 2,150,150
+`xrotate object 2,90
+`fix object pivot 2
+`load image "shadow.bmp",2
+`texture object 2,2
+`set object transparency 2,1
+make object sphere 2,150,2,8
+scale object 2,100,5,100
+color object 2,0
+fade object 2,0
+
+load image "smoke.bmp",2
+for i=3 to 8
+make object plain i,100,100
+texture object i,2
+set object transparency i,1
+set object light i,0
+xrotate object i,270
+ghost object on i
+hide object i
+next i
+
+load object "grass.3ds",9
+position object 9,-1200,0,700
+color object 9,rgb(0,100,0)
+scale object 9,600,600,600
+
+for i=10 to 19
+load object "ant.3ds",i
+color object i,0
+position object i,int(rnd(2000))-1000,0,int(rnd(2000))-1000
+next i
+
+load object "sandwich.3ds",20
+scale object 20,400,400,400
+load image "sandwich.bmp",20
+texture object 20,20
+fade object 20,200
+position object 20,int(rnd(2000))-1000,0,int(rnd(2000))-1000
+
+load object "apple.3ds",21
+scale object 21,400,400,400
+load image "apple.bmp",21
+texture object 21,21
+fade object 21,200
+position object 21,int(rnd(2000))-1000,0,int(rnd(2000))-1000
+
+load object "bottle.3ds",22
+scale object 22,600,600,600
+load image "bottle.bmp",22
+texture object 22,22
+fade object 22,200
+position object 22,int(rnd(2000))-1000,0,int(rnd(2000))-1000
+
+load object "banana.3ds",23
+scale object 23,600,600,600
+load image "banana.bmp",23
+texture object 23,23
+fade object 23,200
+position object 23,int(rnd(2000))-1000,0,int(rnd(2000))-1000
+
+load object "cake.3ds",24
+scale object 24,600,600,600
+load image "cake.bmp",24
+texture object 24,24
+fade object 24,200
+position object 24,int(rnd(2000))-1000,0,int(rnd(2000))-1000
+
+load object "crisps.3ds",25
+scale object 25,600,600,600
+load image "crisps.bmp",25
+texture object 25,25
+fade object 25,200
+
+load image "sandwichsplat.bmp",26,1
+load image "applesplat.bmp",27,1
+load image "bottlesplat.bmp",28,1
+load image "bananasplat.bmp",29,1
+load image "cakesplat.bmp",30,1
+load image "crispssplat.bmp",31,1
+
+for i=26 to 31
+make object plain i,350,350
+xrotate object i,270
+fix object pivot i
+texture object i,i
+set object transparency i,1
+fade object i,200
+`ghost object on i
+hide object i
+next i
+
+dim ant#(10,7)
+`0=x
+`1=z
+`2=angle
+`3=waypointx
+`4=waypointz
+`5=active flag
+`6=bonus red
+
+dim smoke(6,3)
+
+dim food(6,4)
+`0=angle
+`1=radius
+`2=ants
+`3=stolen
+
+dim scoremessage(5,5)
+`0=score added
+`1=colour
+`2=x
+`3=y
+`4=time
+
+menu:
+position object 101,10000,0,0
+position object 9,10000-1200,0,700
+
+set text size 24
+
+for i=1 to 8
+scale limb 102,i,100,100,100
+next i
+
+hammerangle#=-75
+
+position object 1,mx#+10000,100,mz#-275
+xrotate object 1,hammerangle#
+position object 2,mx#+10000,5,mz#-(275*sin(abs(hammerangle#)))
+position camera 10000,1400,-800
+point camera (mx#*0.05)+10000,0,(mz#*0.05)-200
+
+for i=255 to 0 step -5
+set sprite alpha 1,i
+sync
+next i
+
+for i=0 to 9
+hiscoreappear#(i)=500+(i*20)
+next i
+
+do
+
+mx#=mx#+(mousemovex()*2)
+mz#=mz#-(mousemovey()*2)
+
+if mouseclick()=1 and hammerangle#<-60
+hammerangle#=0
+
+for i=0 to 5
+show object i+3
+smoke(i,0)=mx#
+smoke(i,1)=mz#
+smoke(i,2)=wrapvalue((i*60)+(int(rnd(40))-20))
+next i
+if mz#>660 and mz#<740
+limb=int((int(mx#/20.0)+40)/10)
+if limb>=0 and limb <=7 then scale limb 102,(7-limb)+1,100,5,100
+endif
+if mx#>-800 and mx#<-200 and mz#>-200 and mz#<200
+if exitalpha=0 then goto game
+endif
+if mx#>-800 and mx#<-200 and mz#>-800 and mz#<200-600
+exitalpha=5
+endif
+else
+hammerangle#=curvevalue(-75,hammerangle#,10)
+endif
+
+ink rgb(0,0,255),0
+`text 0,0,str$(limb)
+hiscoreappear#(0)=curvevalue(240,hiscoreappear#(0),30)
+text 400,int(hiscoreappear#(0)),hiscore$(9-0)+": "+str$(hiscores(9-0))
+for i=1 to 9
+if hiscoreappear#(i-1)<400+(i*20) then hiscoreappear#(i)=curvevalue(240+(i*20),hiscoreappear#(i),30)
+text 400,int(hiscoreappear#(i)),hiscore$(9-i)+": "+str$(hiscores(9-i))
+next i
+
+text 5,455,"Written by Jonathan Gover "+chr$(169)+" January 2004"
+
+if exitalpha>0
+exitalpha=exitalpha+5
+set sprite alpha 1,exitalpha
+if exitalpha=255 then end
+endif
+
+if hammerangle#>-50
+for i=0 to 5
+position object i+3,(smoke(i,0)+(cos(smoke(i,2))*abs(hammerangle#*3)))+10000,5,smoke(i,1)+(sin(smoke(i,2))*abs(hammerangle#*3))
+`fade object i+3,abs(hammerangle#)
+next i
+else
+for i=0 to 5
+hide object i+3
+next i
+endif
+
+if mx#>1000 then mx#=1000
+if mx#<-1000 then mx#=-1000
+if mz#>1000 then mz#=1000
+if mz#<-1000 then mz#=-1000
+position object 1,mx#+10000,100,mz#-275
+xrotate object 1,hammerangle#
+position object 2,mx#+10000,5,mz#-(275*sin(abs(hammerangle#)))
+position camera 10000,1400,-800
+point camera (mx#*0.05)+10000,0,(mz#*0.05)-200
+
+`if spacekey()=1 then goto game
+
+sync
+loop
+
+game:
+
+for k=0 to 255 step 5
+set sprite alpha 1,k
+hammerangle#=curvevalue(-75,hammerangle#,10)
+if hammerangle#>-50
+for i=0 to 5
+position object i+3,(smoke(i,0)+(cos(smoke(i,2))*abs(hammerangle#*3)))+10000,5,smoke(i,1)+(sin(smoke(i,2))*abs(hammerangle#*3))
+`fade object i+3,abs(hammerangle#)
+next i
+else
+for i=0 to 5
+hide object i+3
+next i
+endif
+xrotate object 1,hammerangle#
+
+sync
+next k
+
+set text size 24
+
+position object 101,0,0,0
+position object 9,-1200,0,700
+
+speed#=5
+hammerangle#=-75
+score=0
+combo=1
+foodstolen=0
+maxcombo=1
+mx#=0
+mz#=0
+gameover=0
+gameovertext=-50
+
+for i=0 to 9
+ant#(i,5)=0
+hide object i+10
+next i
+
+for i=0 to 5
+food(i,0)=i*60+(int(rnd(20))-10)
+food(i,1)=int(rnd(150))+300
+food(i,2)=0
+food(i,3)=0
+hide object i+26
+show object i+20
+yrotate object i+20,0
+if i<2
+scale object i+20,400,400,400
+else
+scale object i+20,600,600,600
+endif
+
+position object i+20,sin(food(i,0))*food(i,1),0,cos(food(i,0))*food(i,1)
+if i<5
+scoremessage(i,4)=0
+newant(i)
+endif
+next i
+
+position object 1,mx#,100,mz#-275
+xrotate object 1,hammerangle#
+position object 2,mx#,5,mz#-(275*sin(abs(hammerangle#)))
+position camera 0,1400,-800
+point camera (mx#*0.05),0,(mz#*0.05)-200
+
+for i=255 to 0 step -5
+set sprite alpha 1,i
+sync
+next i
+
+do
+a#=wrapvalue(a#+0.1)
+
+mx#=mx#+(mousemovex()*2)
+mz#=mz#-(mousemovey()*2)
+
+if mouseclick()=1 and hammerangle#<-60 and gameover=0
+hammerangle#=0
+for i=0 to 5
+show object i+3
+smoke(i,0)=mx#
+smoke(i,1)=mz#
+smoke(i,2)=wrapvalue((i*60)+(int(rnd(40))-20))
+
+if food(i,3)=0
+if abs((sin(food(i,0))*food(i,1))-mx#)<50 and abs((cos(food(i,0))*food(i,1))-mz#)<50
+hide object i+20
+show object i+26
+position object i+26,object position x(i+20),5,object position z(i+20)
+foodstolen=foodstolen+1
+speed#=speed#+1
+if foodstolen=6 then gameover=1 else newant(4+foodstolen)
+food(i,3)=200
+if food(i,2)=0
+scoredelta=-300
+else
+scoredelta=int((food(i,1)-750)*0.2)
+score=score+((2^food(i,2))*10)
+for j=0 to 4
+if scoremessage(j,4)=0
+scoremessage(j,0)=((2^food(i,2))*10)
+scoremessage(j,1)=rgb(0,255,0)
+scoremessage(j,2)=object screen x(i+20)
+scoremessage(j,3)=object screen y(i+20)+20
+scoremessage(j,4)=60
+j=4
+endif
+next j
+endif
+score=score+scoredelta
+for j=0 to 4
+if scoremessage(j,4)=0
+scoremessage(j,0)=scoredelta
+scoremessage(j,1)=rgb(255,0,0)
+scoremessage(j,2)=object screen x(i+20)
+scoremessage(j,3)=object screen y(i+20)
+scoremessage(j,4)=60
+j=4
+endif
+next j
+endif
+endif
+
+
+
+next i
+anthit=0
+for i=0 to 9
+if ant#(i,5)=1
+if abs(mx#-ant#(i,0))<70 and abs(mz#-ant#(i,1))<70
+anthit=anthit+1
+score=score+((10+(40*ant#(i,6)))*combo*anthit)
+for j=0 to 4
+if scoremessage(j,4)=0
+scoremessage(j,0)=((10+(40*ant#(i,6)))*combo*anthit)
+scoremessage(j,1)=rgb(0,255*(1-ant#(i,6)),255*ant#(i,6))
+scoremessage(j,2)=object screen x(i+10)
+scoremessage(j,3)=object screen y(i+10)
+scoremessage(j,4)=60
+j=4
+endif
+next j
+newant(i)
+endif
+endif
+next i
+if anthit=0 then combo=1 else combo=combo+1
+if combo>maxcombo then maxcombo=combo
+else
+hammerangle#=curvevalue(-75,hammerangle#,10)
+endif
+
+if hammerangle#>-50
+for i=0 to 5
+position object i+3,smoke(i,0)+(cos(smoke(i,2))*abs(hammerangle#*3)),5,smoke(i,1)+(sin(smoke(i,2))*abs(hammerangle#*3))
+`fade object i+3,abs(hammerangle#)
+next i
+else
+for i=0 to 5
+hide object i+3
+next i
+endif
+
+if mx#>1000 then mx#=1000
+if mx#<-1000 then mx#=-1000
+if mz#>1000 then mz#=1000
+if mz#<-1000 then mz#=-1000
+
+for i=0 to 9
+if ant#(i,5)=1
+ant#(i,0)=ant#(i,0)+(sin(ant#(i,2))*speed#*(ant#(i,6)+1))
+ant#(i,1)=ant#(i,1)+(cos(ant#(i,2))*speed#*(ant#(i,6)+1))
+ant#(i,2)=curveangle(wrapvalue(atanfull(ant#(i,3)-ant#(i,0),ant#(i,4)-ant#(i,1))),ant#(i,2),10)
+if abs(ant#(i,3)-ant#(i,0))<10 and abs(ant#(i,4)-ant#(i,1))<10
+ant#(i,3)=int(rnd(2000))-1000
+ant#(i,4)=int(rnd(2000))-1000
+endif
+offset limb i+10,3,0,0,sin(a#*500)*5
+offset limb i+10,4,0,0,sin(a#*500)*5
+offset limb i+10,5,0,0,sin(a#*500)*-5
+offset limb i+10,6,0,0,sin(a#*500)*-5
+offset limb i+10,7,0,0,sin(a#*500)*-5
+offset limb i+10,8,0,0,sin(a#*500)*5
+
+position object i+10,ant#(i,0),0,ant#(i,1)
+yrotate object i+10,ant#(i,2)
+show object i+10
+else
+hide object i+10
+endif
+
+next i
+
+for i=0 to 5
+if food(i,3)=0
+for j=0 to 9
+if ant#(j,5)=1
+if abs((sin(food(i,0))*food(i,1))-ant#(j,0))<50 and abs((cos(food(i,0))*food(i,1))-ant#(j,1))<50
+food(i,2)=food(i,2)+1
+newant(j)
+endif
+endif
+next j
+food(i,1)=food(i,1)+food(i,2)
+position object i+20,sin(food(i,0))*food(i,1),0,cos(food(i,0))*food(i,1)
+if sin(food(i,0))*food(i,1)<-1000 or sin(food(i,0))*food(i,1)>1000 or cos(food(i,0))*food(i,1)<-1000 or cos(food(i,0))*food(i,1)>1000
+food(i,3)=1
+foodstolen=foodstolen+1
+speed#=speed#+1
+score=score-500
+for j=0 to 4
+if scoremessage(j,4)=0
+scoremessage(j,0)=-500
+scoremessage(j,1)=rgb(255,0,0)
+scoremessage(j,2)=object screen x(i+20)
+scoremessage(j,3)=object screen y(i+20)
+scoremessage(j,4)=60
+j=4
+endif
+next j
+if foodstolen=6 then gameover=1 else newant(4+foodstolen)
+
+endif
+else
+if food(i,3)<100
+food(i,3)=food(i,3)+1
+turn object right i+20,(food(i,3)*0.5)
+if i<2
+scale object i+20,400-(food(i,3)*4),400-(food(i,3)*4),400-(food(i,3)*4)
+else
+scale object i+20,600-(food(i,3)*6),600-(food(i,3)*6),600-(food(i,3)*6)
+endif
+`text 100,100,str$(i)+":"+str$(food(i,3))
+endif
+endif
+next i
+
+position object 1,mx#,100,mz#-275
+xrotate object 1,hammerangle#
+position object 2,mx#,5,mz#-(275*sin(abs(hammerangle#)))
+position camera 0,1400,-800
+point camera (mx#*0.05),0,(mz#*0.05)-200
+
+ink rgb(255,0,0),0
+text 0,0,"Score: "+str$(score)
+`text 0,200,str$(foodstolen)
+
+for i=0 to 4
+if scoremessage(i,4)>0
+ink scoremessage(i,1),0
+center text scoremessage(i,2),scoremessage(i,3),str$(scoremessage(i,0))
+scoremessage(i,4)=scoremessage(i,4)-1
+endif
+next i
+
+if gameover=1 then goto scorescreen
+
+sync
+loop
+
+scorescreen:
+set text size 48
+
+position object 101,20000,0,0
+position object 9,20000-1200,0,700
+
+hammerangle#=-75
+
+scoreadded=-1
+
+for i=9 to 0 step -1
+if score>hiscores(i)
+for j=0 to i
+hiscores(j)=hiscores(j+1)
+next j
+hiscores(i)=score
+scoreadded=i
+i=9
+endif
+next i
+
+hide object 105
+name$=""
+
+do
+
+mx#=mx#+(mousemovex()*2)
+mz#=mz#-(mousemovey()*2)
+
+if mouseclick()=1 and hammerangle#<-60
+hammerangle#=0
+for i=0 to 5
+show object i+3
+smoke(i,0)=mx#
+smoke(i,1)=mz#
+smoke(i,2)=wrapvalue((i*60)+(int(rnd(40))-20))
+next i
+`if scoreadded>-1
+`if mx#
+`endif
+`endif
+else
+hammerangle#=curvevalue(-75,hammerangle#,10)
+endif
+
+if hammerangle#>-50
+for i=0 to 5
+position object i+3,(smoke(i,0)+(cos(smoke(i,2))*abs(hammerangle#*3)))+20000,5,smoke(i,1)+(sin(smoke(i,2))*abs(hammerangle#*3))
+`fade object i+3,abs(hammerangle#)
+next i
+else
+for i=0 to 5
+hide object i+3
+next i
+endif
+
+if mx#>1000 then mx#=1000
+if mx#<-1000 then mx#=-1000
+if mz#>1000 then mz#=1000
+if mz#<-1000 then mz#=-1000
+position object 1,mx#+20000,100,mz#-275
+xrotate object 1,hammerangle#
+position object 2,mx#+20000,5,mz#-(275*sin(abs(hammerangle#)))
+position camera 20000,1400,-800
+point camera (mx#*0.05)+20000,0,(mz#*0.05)-200
+
+gameovertext#=curvevalue(50,gameovertext#,40)
+ink rgb(0,0,255),0
+center text 320,int(gameovertext#),"GAME OVER!"
+
+if gameovertext#>40
+center text 320,100,"Score: "+str$(score)
+center text 320,130,"Best ant combo: "+str$(maxcombo)
+if scoreadded>-1
+center text 320,160,"New high score!  Enter name: "
+set cursor 320,180
+input name$
+hiscore$(scoreadded)=name$
+scoreadded=-1
+if file exist("hiscore.dat")=1 then delete file "hiscore.dat"
+open to write 1,"hiscore.dat"
+for i=0 to 9
+write string 1,hiscore$(i)
+next i
+for i=0 to 9
+write word 1,hiscores(i)
+next i
+close file 1
+endif
+endif
+`text 100,200,str$(gameovertext#)
+center text 320,int(480-gameovertext#),"Press space to continue"
+
+if spacekey()=1
+
+for i=0 to 255 step 5
+set sprite alpha 1,i
+sync
+next i
+goto menu
+
+endif
+
+sync
+loop
+
+
+function newant(antno)
+placement=int(rnd(3))
+select placement
+case 0
+ant#(antno,0)=-1000
+ant#(antno,1)=int(rnd(2000))-1000
+ant#(antno,2)=90
+endcase
+case 1
+ant#(antno,0)=int(rnd(2000))-1000
+ant#(antno,1)=1000
+ant#(antno,2)=180
+endcase
+case 2
+ant#(antno,0)=1000
+ant#(antno,1)=int(rnd(2000))-1000
+ant#(antno,2)=270
+endcase
+case 3
+ant#(antno,0)=int(rnd(2000))-1000
+ant#(antno,1)=-1000
+ant#(antno,2)=0
+endcase
+endselect
+ant#(antno,3)=int(rnd(2000))-1000
+ant#(antno,4)=int(rnd(2000))-1000
+ant#(antno,5)=1
+if int(rnd(20))=1
+ant#(antno,6)=1
+color object antno+10,rgb(255,0,0)
+else
+ant#(antno,6)=0
+color object antno+10,0
+endif
+show object antno+10
+position object antno+10,ant#(antno,0),0,ant#(antno,1)
+yrotate object antno+10,ant#(antno,2)
+endfunction
+
